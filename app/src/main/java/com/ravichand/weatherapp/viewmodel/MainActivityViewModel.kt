@@ -13,25 +13,32 @@ import com.ravichand.weatherapp.utils.ProgressUtils
 import io.reactivex.Observable
 import io.reactivex.internal.operators.observable.ObservableError
 
-class MainActivityViewModel : ViewModel() , RetrofitServiceListener{
+class MainActivityViewModel : ViewModel(), RetrofitServiceListener {
     var weatherResponseModel = ObservableField<WeatherResponseModel>()
-    var weather : MutableLiveData<ArrayList<Weather>>
-    var mainRepo : MainRepository? =null
+    var weather = ObservableField<Weather>()
+    var mainRepo: MainRepository? = null
     var location = ObservableField<String>()
 
     init {
         mainRepo = MainRepository(this as RetrofitServiceListener)
-        weather = MutableLiveData()
-        location.set("Hyderabad We111")
     }
 
-    fun makeAPICall(context : Activity, s: String, s1: String) {
+    fun makeAPICall(context: Activity, city: String, api_key: String) {
+        location.set(city)
         ProgressUtils.showProgress(context)
-       mainRepo?.makeAPICallFromRepo( s,s1)
+        mainRepo?.makeAPICallFromRepo(city, api_key)
     }
 
     override fun onResponse(response: Any?) {
         weatherResponseModel.set(response as WeatherResponseModel)
+        weather.set(
+            weatherResponseModel.get()?.weather?.get(0) ?: Weather(
+                1,
+                "default",
+                "description",
+                "123"
+            )
+        )
         ProgressUtils.hideProgress()
     }
 
@@ -39,9 +46,5 @@ class MainActivityViewModel : ViewModel() , RetrofitServiceListener{
         print("onFailure $failure")
         ProgressUtils.hideProgress()
     }
-
-
-
-
 }
 
